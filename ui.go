@@ -69,9 +69,21 @@ func displayRaceUIWithWS(updates <-chan RaceUpdate, hub *Hub, commands chan<- Co
 <h1>Race Progress</h1>
 <div id="toolbar">
   <button id="start" disabled>Start Race</button>
+  <button id="trackBtn" style="margin-left:8px;">Track</button>
+  <button id="resultsBtn" style="margin-left:8px;">Results</button>
   <span id="status" style="margin-left:8px; color:#555;">connecting…</span>
 </div>
 <div id="bars"></div>
+
+<script>
+document.getElementById("trackBtn").onclick = () => {
+    window.location.href = "/track";
+};
+document.getElementById("resultsBtn").onclick = () => {
+    window.location.href = "/results";
+};
+</script>
+
 
 <script>
   const container = document.getElementById("bars");
@@ -158,6 +170,11 @@ func displayRaceUIWithWS(updates <-chan RaceUpdate, hub *Hub, commands chan<- Co
 		}
 	})
 
+	http.HandleFunc("/track", func(w http.ResponseWriter, r *http.Request) {
+    	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+    	w.Write([]byte(generateTrackPageHTML(uiNumRacers)))
+	})
+
 	go func() {
 		ticker := time.NewTicker(100 * time.Millisecond)
 		defer ticker.Stop()
@@ -171,6 +188,10 @@ func displayRaceUIWithWS(updates <-chan RaceUpdate, hub *Hub, commands chan<- Co
 			hub.broadcast <- mustJSON(WSMessage{Type: "progress", Data: cp})
 		}
 	}()
+
+	http.Handle("/racer_pictures/", http.StripPrefix("/racer_pictures/", http.FileServer(http.Dir("./racer_pictures"))))
+
+	resultsHandler() 
 
 	go func() {
 		fmt.Println("Server started at http://localhost:8080")
