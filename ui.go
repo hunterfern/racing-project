@@ -14,7 +14,12 @@ func displayRaceUIWithWS(updates <-chan RaceUpdate, hub *Hub, commands chan<- Co
 	var mu sync.RWMutex
 	progress := make([]int, uiNumRacers)
 
+	// Track finish times and broadcast winner when all finish
 	go func() {
+		// Maps to store finish times. Access guarded by mu.
+		finishTimes := make(map[int]time.Duration)
+		winnerSent := false
+
 		for u := range updates {
 			if u.position < 0 {
 				u.position = 0
@@ -22,11 +27,42 @@ func displayRaceUIWithWS(updates <-chan RaceUpdate, hub *Hub, commands chan<- Co
 			if u.position > 100 {
 				u.position = 100
 			}
+
+			// update progress slice
 			mu.Lock()
 			for len(progress) <= u.id {
 				progress = append(progress, 0)
 			}
 			progress[u.id] = u.position
+
+			// if this update marks the racer finished and we haven't recorded it yet,
+			// record their elapsed time
+			if u.finished {
+				if _, ok := finishTimes[u.id]; !ok {
+					finishTimes[u.id] = u.elapsed
+				}
+			}
+
+			// if all racers have finished (and we have a non-zero expected count),
+			// determine winner and broadcast (only once).
+			if !winnerSent && uiNumRacers > 0 && len(finishTimes) >= uiNumRacers {
+				// Find minimum elapsed time (tie-breaker: lower id)
+				winnerID := -1
+				var best time.Duration
+				for id, t := range finishTimes {
+					if winnerID == -1 || t < best || (t == best && id < winnerID) {
+						winnerID = id
+						best = t
+					}
+				}
+				// broadcast winner over websocket with finish time in milliseconds
+				payload := map[string]interface{}{
+					"id":       winnerID,
+					"finishMs": best.Milliseconds(),
+				}
+				hub.broadcast <- mustJSON(WSMessage{Type: "winner", Data: payload})
+				winnerSent = true
+			}
 			mu.Unlock()
 		}
 	}()
@@ -70,6 +106,7 @@ func displayRaceUIWithWS(updates <-chan RaceUpdate, hub *Hub, commands chan<- Co
 <div id="toolbar">
   <button id="start" disabled>Start Race</button>
   <button id="trackBtn" style="margin-left:8px;">Track</button>
+  <button id="track2Btn" style="margin-left:8px;">Track 2</button>
   <button id="resultsBtn" style="margin-left:8px;">Results</button>
   <span id="status" style="margin-left:8px; color:#555;">connecting…</span>
 </div>
@@ -79,8 +116,13 @@ func displayRaceUIWithWS(updates <-chan RaceUpdate, hub *Hub, commands chan<- Co
 document.getElementById("trackBtn").onclick = () => {
     window.location.href = "/track";
 };
+
 document.getElementById("resultsBtn").onclick = () => {
     window.location.href = "/results";
+};
+
+document.getElementById("track2Btn").onclick = () => {
+    window.location.href = "/track2";
 };
 </script>
 
@@ -142,6 +184,7 @@ document.getElementById("resultsBtn").onclick = () => {
   };
 </script>
 `)
+
 	})
 
 	http.HandleFunc("/progress", func(w http.ResponseWriter, r *http.Request) {
@@ -188,6 +231,12 @@ document.getElementById("resultsBtn").onclick = () => {
 			hub.broadcast <- mustJSON(WSMessage{Type: "progress", Data: cp})
 		}
 	}()
+
+	http.HandleFunc("/track2", func(w http.ResponseWriter, r *http.Request) {
+    	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+    	w.Write([]byte(generateTrack2PageHTML(uiNumRacers)))
+	})
+
 
 	http.Handle("/racer_pictures/", http.StripPrefix("/racer_pictures/", http.FileServer(http.Dir("./racer_pictures"))))
 

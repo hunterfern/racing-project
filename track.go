@@ -33,15 +33,20 @@ transition: transform 0.1s linear;
 pointer-events: none; }
 
 #winner { margin-top: 20px; font-size: 1.2em; font-weight: bold; }
+
+#toolbar { margin-bottom: 12px; }
 </style>
 </head>
 <body>
 <h1>Race Track</h1>
-<button id="backBtn" style="margin-bottom: 12px;">Progress</button>
-<button id="resultsBtn" style="margin-left:8px;">Results</button>
+<div id="toolbar">
+  <button id="start" disabled>Start Race</button>
+  <button id="backBtn" style="margin-left:8px;">Progress</button>
+  <button id="resultsBtn" style="margin-left:8px;">Results</button>
+  <span id="status" style="margin-left:8px; color:#555;">connecting…</span>
+</div>
 <div id="track-container"></div>
 <div id="winner"></div>
-
 
 <script>
 const NUM_RACERS = ` + fmt.Sprint(numRacers) + `;
@@ -57,7 +62,7 @@ for (let i=0; i<NUM_RACERS; i++){
     track.appendChild(img);
     dots.push(img);
 }
-const rx=180, ry=100, cx=1, cy=125; // position of oval
+const rx=180, ry=100, cx=1, cy=125; // oval
 function getAngle(pct){return pct/100*2*Math.PI;}
 function updateTrack(progress){
     for(let i=0;i<dots.length;i++){
@@ -69,21 +74,42 @@ function updateTrack(progress){
     }
 }
 function showWinner(winnerId){document.getElementById('winner').textContent="Winner: Racer "+(winnerId+1);}
+
 const proto = location.protocol==='https:'?'wss://':'ws://';
 const ws=new WebSocket(proto+location.host+'/ws');
-ws.onmessage=(e)=>{try{const msg=JSON.parse(e.data);if(msg.type==='progress')updateTrack(msg.data||[]);else if(msg.type==='winner')showWinner(msg.data);}catch(err){console.error(err);}};
+
+const btnStart = document.getElementById('start');
+const statusEl = document.getElementById('status');
+
+ws.onopen = () => {
+    statusEl.textContent = 'connected';
+    btnStart.disabled = false;
+};
+ws.onclose = () => {
+    statusEl.textContent = 'disconnected';
+    btnStart.disabled = true;
+};
+
+btnStart.onclick = () => {
+    if(ws.readyState===WebSocket.OPEN){
+        ws.send(JSON.stringify({type:'START'}));
+    }
+};
+
+ws.onmessage = (e) => {
+    try{
+        const msg=JSON.parse(e.data);
+        if(msg.type==='progress') updateTrack(msg.data||[]);
+        else if(msg.type==='winner') showWinner(msg.data);
+    }catch(err){console.error(err);}
+};
+
 const initialPositions=[];
 (function(){const startPct=0;const gap=3.5;for(let i=0;i<NUM_RACERS;i++){initialPositions.push((startPct-i*gap+100)%100);}})();
 window.addEventListener('load',()=>updateTrack());
 
-document.getElementById("backBtn").onclick = () => {
-    window.location.href = "/";
-};
-document.getElementById("resultsBtn").onclick = () => {
-    window.location.href = "/results";
-};
-
-
+document.getElementById("backBtn").onclick = () => { window.location.href = "/"; };
+document.getElementById("resultsBtn").onclick = () => { window.location.href = "/results"; };
 </script>
 </body>
 </html>`
