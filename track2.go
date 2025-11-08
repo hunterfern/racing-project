@@ -132,6 +132,47 @@ select, button {
 }
 select:hover, button:hover { background: #f0f0f0; }
 
+.leaderboard {
+  width: 260px;
+  margin-left: 12px;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+}
+
+.leaderboard h2 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  color: #ffd54d;
+}
+
+#lbBody {  position: relative; height: 0; }
+
+.lb-row {
+  position: absolute;
+  left: 8px; right: 8px;
+  height: 44px;
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 8px;
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  align-items: center;
+  font-weight: 600;
+  background: rgba(0,0,0,0.12);
+  border-radius: 8px;
+  transition: transform 600ms cubic-bezier(.25,.8,.25,1);
+  will-change: transform;
+}
+
+.lb-row:last-child { border-bottom: none; }
+.lb-rank { text-align: right; opacity: 0.9; }
+.lb-name { text-align: left; }
+
+
 @media (max-width: 700px) {
   .lane-numbers { display: none; }
   .finish-line { right: 10%; width: 5px; }
@@ -163,6 +204,10 @@ select:hover, button:hover { background: #f0f0f0; }
 <div class="track-wrapper">
   <div class="lane-numbers" id="laneNumbers"></div>
   <div id="track"></div>
+  <div class="leaderboard" id="leaderboard">
+    <h2>Leaderboard</h2>
+    <div id="lbBody"></div>
+  </div>
 </div>
 
 <div id="winner">Winner: —</div>
@@ -177,6 +222,12 @@ const btnStart = document.getElementById('start');
 const selectRacers = document.getElementById('numRacers');
 const statusEl = document.getElementById('status');
 const homeBtn = document.getElementById('homeBtn');
+const lbBody = document.getElementById('lbBody');
+let lastOrder = [];
+const ROW_H = 44;
+const rowEls = [];
+let lastLBUpdate = 0;
+const LB_INTERVAL = 300;
 
 const dots = [];
 
@@ -215,6 +266,38 @@ function createRacers() {
   const finish = document.createElement('div');
   finish.className = 'finish-line';
   trackEl.appendChild(finish);
+
+  buildLeaderboardRows();
+}
+
+function getSuffix(n) {
+  if (n % 10 === 1 && n % 100 !== 11) return 'st';
+  if (n % 10 === 2 && n % 100 !== 12) return 'nd';
+  if (n % 10 === 3 && n % 100 !== 13) return 'rd';
+  return 'th';
+}
+
+function buildLeaderboardRows() {
+  lbBody.innerHTML = '';
+  rowEls.length = 0;
+
+  lbBody.style.height = (ROW_H * NUM_RACERS) + 'px';
+
+  for (let i = 0; i < NUM_RACERS; i++) {
+    const row = document.createElement('div');
+    row.className = 'lb-row';
+    row.style.transform = 'translateY(' + (i * ROW_H) + 'px)'; 
+    row.dataset.id = i;
+
+    row.innerHTML =
+  '<div class="lb-rank">' + (i + 1) + getSuffix(i + 1) + '</div>' +
+  '<div class="lb-name">Racer ' + (i + 1) + '</div>';
+
+    lbBody.appendChild(row);
+    rowEls.push(row);
+  }
+
+  lastOrder = Array.from({length: NUM_RACERS}, (_, k) => k);
 }
 
 // update positions
@@ -225,7 +308,44 @@ function updateTrack(progress) {
     const pct = progress && progress[i] !== undefined ? progress[i] : 0;
     dots[i].style.left = Math.max(0, Math.min(maxX, maxX * pct / 100)) + 'px';
   }
+updateLeaderboard(progress);
 }
+
+function updateLeaderboard(progress) {
+  const now = performance.now();
+  if (now - lastLBUpdate < LB_INTERVAL) return;
+  lastLBUpdate = now;
+  const rows = [];
+  for ( let i = 0; i < NUM_RACERS; i++) {
+    const pct = progress && progress[i] !== undefined ? progress[i] : 0;
+    rows.push([i, pct]);
+  }
+
+  const orderIndex = new Map();
+  if (lastOrder.length === NUM_RACERS) {
+    lastOrder.forEach((id, idx) => orderIndex.set(id, idx));
+  }
+  rows.sort((a, b) => {
+    if (b[1] !== a[1]) return b[1] - a[1];
+    const ao = orderIndex.has(a[0]) ? orderIndex.get(a[0]) : 9999;
+    const bo = orderIndex.has(b[0]) ? orderIndex.get(b[0]) : 9999;
+    if (ao !== bo) return ao - bo;
+    return a[0] - b[0];
+  });
+
+  for (let rank = 0; rank < rows.length; rank++) {
+    const id = rows[rank][0];
+    const row = rowEls[id];
+    if (!row) continue;
+
+    row.querySelector('.lb-rank').textContent = (rank + 1) + getSuffix(rank + 1);
+
+    row.style.transform = 'translateY(' + (rank * ROW_H) + 'px)';
+  }
+
+  lastOrder = rows.map(r => r[0]);
+}
+
 
 // display winner
 function showWinner(w) {
@@ -263,7 +383,9 @@ btnStart.addEventListener('click', () => {
 selectRacers.addEventListener('change', () => {
   NUM_RACERS = parseInt(selectRacers.value);
   createRacers();
+  buildLeaderboardRows();
   showWinner(null);
+  updateLeaderboard(new Array(NUM_RACERS).fill(0));
   btnStart.textContent = 'Start Race';
 });
 
@@ -271,7 +393,10 @@ selectRacers.addEventListener('change', () => {
 ws.addEventListener('message', (evt) => {
   try {
     const msg = JSON.parse(evt.data);
-    if (msg.type==='progress') updateTrack(msg.data||[]);
+    if (msg.type==='progress'){
+      updateTrack(msg.data||[]);
+      updateLeaderboard(msg.data || []);
+    }
     else if (msg.type==='winner') showWinner(msg.data);
   } catch(err){console.error(err);}
 });
@@ -281,7 +406,7 @@ homeBtn.addEventListener('click', () => { btnStart.textContent='Start Race'; win
 document.getElementById('resultsBtn').addEventListener('click', ()=>window.location.href='/results');
 
 window.addEventListener('resize', ()=>updateTrack([]));
-window.addEventListener('load', () => { createRacers(); selectRacers.value=NUM_RACERS; updateTrack([]); });
+window.addEventListener('load', () => { createRacers(); selectRacers.value=NUM_RACERS; buildLeaderboardRows(); updateTrack([]); updateLeaderboard(new Array(NUM_RACERS).fill(0)); });
 </script>
 </body>
 </html>`
