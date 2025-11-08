@@ -1,4 +1,4 @@
-package main 
+package main
 
 import "fmt"
 
@@ -41,7 +41,8 @@ pointer-events: none; }
 <h1>Race Track</h1>
 <div id="toolbar">
   <button id="start" disabled>Start Race</button>
-  <button id="backBtn" style="margin-left:8px;">Progress</button>
+  <button id="restartBtn" style="margin-left:8px;">🔁 Start New Race</button>
+  <button id="backBtn" style="margin-left:8px;">Home</button>
   <button id="resultsBtn" style="margin-left:8px;">Results</button>
   <span id="status" style="margin-left:8px; color:#555;">connecting…</span>
 </div>
@@ -52,6 +53,9 @@ pointer-events: none; }
 const NUM_RACERS = ` + fmt.Sprint(numRacers) + `;
 const track = document.getElementById('track-container');
 const dots = [];
+const initialPositions=[];
+(function(){const startPct=0;const gap=3.5;for(let i=0;i<NUM_RACERS;i++){initialPositions.push((startPct-i*gap+100)%100);}})();
+
 // Create image elements
 for (let i=0; i<NUM_RACERS; i++){
     const img = document.createElement('img');
@@ -62,6 +66,7 @@ for (let i=0; i<NUM_RACERS; i++){
     track.appendChild(img);
     dots.push(img);
 }
+
 const rx=180, ry=100, cx=1, cy=125; // oval
 function getAngle(pct){return pct/100*2*Math.PI;}
 function updateTrack(progress){
@@ -74,41 +79,72 @@ function updateTrack(progress){
     }
 }
 function showWinner(winnerId){document.getElementById('winner').textContent="Winner: Racer "+(winnerId+1);}
+function clearWinner(){document.getElementById('winner').textContent="";}
 
 const proto = location.protocol==='https:'?'wss://':'ws://';
-const ws=new WebSocket(proto+location.host+'/ws');
+let ws;
+let btnStart = document.getElementById('start');
+let restartBtn = document.getElementById('restartBtn');
+let statusEl = document.getElementById('status');
 
-const btnStart = document.getElementById('start');
-const statusEl = document.getElementById('status');
+function connectWS(){
+    ws = new WebSocket(proto+location.host+'/ws');
 
-ws.onopen = () => {
-    statusEl.textContent = 'connected';
-    btnStart.disabled = false;
-};
-ws.onclose = () => {
-    statusEl.textContent = 'disconnected';
-    btnStart.disabled = true;
-};
+    ws.onopen = () => {
+        statusEl.textContent = 'connected';
+        btnStart.disabled = false;
+    };
+    ws.onclose = () => {
+        statusEl.textContent = 'disconnected';
+        btnStart.disabled = true;
+    };
+
+    ws.onmessage = (e) => {
+        try{
+            const msg=JSON.parse(e.data);
+            if(msg.type==='progress') updateTrack(msg.data||[]);
+            else if(msg.type==='winner') showWinner(msg.data);
+            else if(msg.type==='reset'){ // reset UI if server tells us race reset
+                updateTrack([]);
+                clearWinner();
+                btnStart.disabled = false;
+            }
+        }catch(err){console.error(err);}
+    };
+}
+
+connectWS(); // start connection
 
 btnStart.onclick = () => {
-    if(ws.readyState===WebSocket.OPEN){
+    if(ws && ws.readyState===WebSocket.OPEN){
         ws.send(JSON.stringify({type:'START'}));
     }
 };
 
-ws.onmessage = (e) => {
+restartBtn.onclick = async () => {
     try{
-        const msg=JSON.parse(e.data);
-        if(msg.type==='progress') updateTrack(msg.data||[]);
-        else if(msg.type==='winner') showWinner(msg.data);
-    }catch(err){console.error(err);}
+        restartBtn.disabled = true;
+        // clear current race display
+        clearWinner();
+        updateTrack([]);
+        // tell server to reset race
+        await fetch('/reset-race', {method:'POST'});
+        // give the WS some time to process reset
+        setTimeout(()=>{
+            if(ws.readyState===WebSocket.CLOSED || ws.readyState===WebSocket.CLOSING){
+                connectWS(); // reconnect if disconnected
+            }
+            restartBtn.disabled = false;
+        }, 300);
+    }catch(e){
+        console.error('Restart failed:', e);
+        restartBtn.disabled = false;
+    }
 };
 
-const initialPositions=[];
-(function(){const startPct=0;const gap=3.5;for(let i=0;i<NUM_RACERS;i++){initialPositions.push((startPct-i*gap+100)%100);}})();
 window.addEventListener('load',()=>updateTrack());
 
-document.getElementById("backBtn").onclick = () => { window.location.href = "/"; };
+document.getElementById("backBtn").onclick = () => { window.location.href = "/landing"; };
 document.getElementById("resultsBtn").onclick = () => { window.location.href = "/results"; };
 </script>
 </body>

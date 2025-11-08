@@ -44,17 +44,15 @@ func (h *Hub) Run() {
 		case c := <-h.unregister:
 			if _, ok := h.clients[c]; ok {
 				delete(h.clients, c)
-				close(c.send)
-				_ = c.conn.Close()
+				_ = c.conn.Close() // 🟢 Don't close c.send, keep goroutine isolated
 			}
 		case msg := <-h.broadcast:
 			for c := range h.clients {
 				select {
 				case c.send <- msg:
 				default:
-					delete(h.clients, c)
-					close(c.send)
-					_ = c.conn.Close()
+					// 🟢 Don’t kill connection abruptly; just skip client
+					fmt.Println("Skipping slow client")
 				}
 			}
 		}
@@ -82,11 +80,7 @@ func (h *Hub) WSHandler(commands chan<- Command) http.HandlerFunc {
 			}()
 			for {
 				select {
-				case msg, ok := <-c.send:
-					if !ok {
-						_ = c.conn.WriteMessage(websocket.CloseMessage, []byte{})
-						return
-					}
+				case msg := <-c.send:
 					if err := c.conn.WriteMessage(websocket.TextMessage, msg); err != nil {
 						return
 					}
@@ -99,6 +93,7 @@ func (h *Hub) WSHandler(commands chan<- Command) http.HandlerFunc {
 		for {
 			_, data, err := c.conn.ReadMessage()
 			if err != nil {
+				h.unregister <- c
 				break
 			}
 			var m map[string]any
@@ -106,7 +101,6 @@ func (h *Hub) WSHandler(commands chan<- Command) http.HandlerFunc {
 				t, _ := m["type"].(string)
 				kind := strings.ToUpper(t)
 				args := map[string]string{}
-
 				for k, v := range m {
 					if k == "type" {
 						continue
@@ -114,7 +108,6 @@ func (h *Hub) WSHandler(commands chan<- Command) http.HandlerFunc {
 					if s, ok := v.(string); ok {
 						args[k] = s
 					}
-
 					if f, ok := v.(float64); ok {
 						args[k] = strings.TrimRight(strings.TrimRight(fmt.Sprintf("%.0f", f), "0"), ".")
 					}

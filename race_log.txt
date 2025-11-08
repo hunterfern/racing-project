@@ -957,3 +957,269 @@ Placing:
   7) Racer 4 12.26s
   8) Racer 2 12.51s
 
+=== Race @ 2025-11-07T18:03:59-06:00 ===
+Total racers: 8
+Winner: Racer 1 (7.75s)
+Total wall time: 13.57s
+Placing:
+  1) Racer 1 7.75s
+  2) Racer 3 8.01s
+  3) Racer 4 8.63s
+  4) Racer 7 8.66s
+  5) Racer 5 9.11s
+  6) Racer 2 11.09s
+  7) Racer 0 11.26s
+  8) Racer 6 13.57s
+
+=== Race @ 2025-11-07T18:14:56-06:00 ===
+Total racers: 8
+Winner: Racer 5 (7.64s)
+Total wall time: 13.75s
+Placing:
+  1) Racer 5 7.64s
+  2) Racer 4 9.12s
+  3) Racer 3 9.32s
+  4) Racer 7 9.90s
+  5) Racer 0 11.86s
+  6) Racer 1 13.47s
+  7) Racer 2 13.68s
+  8) Racer 6 13.75s
+
+=== Race @ 2025-11-07T18:17:49-06:00 ===
+Total racers: 8
+Winner: Racer 2 (7.47s)
+Total wall time: 13.94s
+Placing:
+  1) Racer 2 7.47s
+  2) Racer 7 7.93s
+  3) Racer 4 10.22s
+  4) Racer 1 10.81s
+  5) Racer 3 11.87s
+  6) Racer 6 13.70s
+  7) Racer 0 13.91s
+  8) Racer 5 13.94s
+
+=== Race @ 2025-11-07T18:17:53-06:00 ===
+Total racers: 8
+Winner: Racer 0 (0.00s)
+Total wall time: 0.00s
+Placing:
+  1) Racer 0 0.00s
+  2) Racer 0 0.00s
+  3) Racer 0 0.00s
+  4) Racer 0 0.00s
+  5) Racer 0 0.00s
+  6) Racer 0 0.00s
+  7) Racer 0 0.00s
+  8) Racer 0 0.00s
+
+=== Race @ 2025-11-07T18:21:53-06:00 ===
+Total racers: 8
+Winner: Racer 0 (7.12s)
+Total wall time: 13.39s
+Placing:
+  1) Racer 0 7.12s
+  2) Racer 3 8.88s
+  3) Racer 6 10.26s
+  4) Racer 4 10.86s
+  5) Racer 1 11.40s
+  6) Racer 7 11.47s
+  7) Racer 2 11.91s
+  8) Racer 5 13.39s
+
+=== Race @ 2025-11-07T18:21:54-06:00 ===
+Total racers: 8
+Winner: Racer 0 (0.00s)
+Total wall time: 0.00s
+Placing:
+  1) Racer 0 0.00s
+  2) Racer 0 0.00s
+  3) Racer 0 0.00s
+  4) Racer 0 0.00s
+  5) Racer 0 0.00s
+  6) Racer 0 0.00s
+  7) Racer 0 0.00s
+  8) Racer 0 0.00s
+
+=== Race @ 2025-11-07T18:24:39-06:00 ===
+Total racers: 8
+Winner: Racer 4 (8.40s)
+Total wall time: 13.12s
+Placing:
+  1) Racer 4 8.40s
+  2) Racer 5 8.55s
+  3) Racer 0 8.83s
+  4) Racer 7 9.15s
+  5) Racer 1 9.66s
+  6) Racer 3 9.88s
+  7) Racer 6 11.13s
+  8) Racer 2 13.12s
+
+=== Race @ 2025-11-07T18:24:47-06:00 ===
+Total racers: 8
+Winner: Racer 0 (0.00s)
+Total wall time: 0.00s
+Placing:
+  1) Racer 0 0.00s
+  2) Racer 0 0.00s
+  3) Racer 0 0.00s
+  4) Racer 0 0.00s
+  5) Racer 0 0.00s
+  6) Racer 0 0.00s
+  7) Racer 0 0.00s
+  8) Racer 0 0.00s
+
+=== Race @ 2025-11-07T18:27:47-06:00 ===
+Total racers: 8
+Winner: Racer 4 (8.57s)
+Total wall time: 13.62s
+Placing:
+  1) Racer 4 8.57s
+  2) Racer 3 8.90s
+  3) Racer 2 9.39s
+  4) Racer 1 9.82s
+  5) Racer 7 10.34s
+  6) Racer 6 12.27s
+  7) Racer 5 12.78s
+  8) Racer 0 13.62s
+
+=== Race @ 2025-11-07T18:27:54-06:00 ===
+Total racers: 8
+Winner: Racer 0 (0.00s)
+Total wall time: 0.00s
+Placing:
+  1) Racer 0 0.00s
+  2) Racer 0 0.00s
+  3) Racer 0 0.00s
+  4) Racer 0 0.00s
+  5) Racer 0 0.00s
+  6) Racer 0 0.00s
+  7) Racer 0 0.00s
+  8) Racer 0 0.00s
+
+=== Race @ 2025-11-07T18:30:26-06:00 ===
+Total racers: 8
+Winner: Racer 3 (8.99s)
+Total wall time: 13.75s
+Placing:
+  1) Racer 3 8.99s
+  2) Racer 7 9.24s
+  3) Racer 5 10.18s
+  4) Racer 0 11.08s
+  5) Racer 4 11.38s
+  6) Racer 1 11.48s
+  7) Racer 2 11.51s
+  8) Racer 6 13.75s
+
+=== Race @ 2025-11-07T18:30:31-06:00 ===
+Total racers: 8
+Winner: Racer 0 (0.00s)
+Total wall time: 0.00s
+Placing:
+  1) Racer 0 0.00s
+  2) Racer 0 0.00s
+  3) Racer 0 0.00s
+  4) Racer 0 0.00s
+  5) Racer 0 0.00s
+  6) Racer 0 0.00s
+  7) Racer 0 0.00s
+  8) Racer 0 0.00s
+
+=== Race @ 2025-11-07T18:30:33-06:00 ===
+Total racers: 8
+Winner: Racer 0 (0.00s)
+Total wall time: 0.00s
+Placing:
+  1) Racer 0 0.00s
+  2) Racer 0 0.00s
+  3) Racer 0 0.00s
+  4) Racer 0 0.00s
+  5) Racer 0 0.00s
+  6) Racer 0 0.00s
+  7) Racer 0 0.00s
+  8) Racer 0 0.00s
+
+=== Race @ 2025-11-07T18:30:34-06:00 ===
+Total racers: 8
+Winner: Racer 0 (0.00s)
+Total wall time: 0.00s
+Placing:
+  1) Racer 0 0.00s
+  2) Racer 0 0.00s
+  3) Racer 0 0.00s
+  4) Racer 0 0.00s
+  5) Racer 0 0.00s
+  6) Racer 0 0.00s
+  7) Racer 0 0.00s
+  8) Racer 0 0.00s
+
+=== Race @ 2025-11-07T18:30:38-06:00 ===
+Total racers: 8
+Winner: Racer 0 (0.00s)
+Total wall time: 0.00s
+Placing:
+  1) Racer 0 0.00s
+  2) Racer 0 0.00s
+  3) Racer 0 0.00s
+  4) Racer 0 0.00s
+  5) Racer 0 0.00s
+  6) Racer 0 0.00s
+  7) Racer 0 0.00s
+  8) Racer 0 0.00s
+
+=== Race @ 2025-11-07T18:30:42-06:00 ===
+Total racers: 8
+Winner: Racer 0 (0.00s)
+Total wall time: 0.00s
+Placing:
+  1) Racer 0 0.00s
+  2) Racer 0 0.00s
+  3) Racer 0 0.00s
+  4) Racer 0 0.00s
+  5) Racer 0 0.00s
+  6) Racer 0 0.00s
+  7) Racer 0 0.00s
+  8) Racer 0 0.00s
+
+=== Race @ 2025-11-07T18:33:13-06:00 ===
+Total racers: 8
+Winner: Racer 5 (9.15s)
+Total wall time: 14.00s
+Placing:
+  1) Racer 5 9.15s
+  2) Racer 4 9.82s
+  3) Racer 3 10.11s
+  4) Racer 0 12.65s
+  5) Racer 6 12.76s
+  6) Racer 1 13.29s
+  7) Racer 2 13.29s
+  8) Racer 7 14.00s
+
+=== Race @ 2025-11-07T18:33:30-06:00 ===
+Total racers: 8
+Winner: Racer 5 (7.23s)
+Total wall time: 13.46s
+Placing:
+  1) Racer 5 7.23s
+  2) Racer 1 8.71s
+  3) Racer 7 8.84s
+  4) Racer 4 9.19s
+  5) Racer 3 11.46s
+  6) Racer 6 11.59s
+  7) Racer 0 12.99s
+  8) Racer 2 13.46s
+
+=== Race @ 2025-11-07T18:33:45-06:00 ===
+Total racers: 8
+Winner: Racer 6 (6.92s)
+Total wall time: 13.46s
+Placing:
+  1) Racer 6 6.92s
+  2) Racer 4 8.92s
+  3) Racer 1 8.96s
+  4) Racer 5 10.17s
+  5) Racer 2 11.22s
+  6) Racer 0 11.41s
+  7) Racer 3 12.47s
+  8) Racer 7 13.46s
+

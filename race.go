@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"sync"
 	"time"
@@ -18,60 +19,99 @@ type RaceResult struct {
 	finishTime time.Duration
 }
 
+// global mutex + flags to ensure race state resets safely
+var raceMu sync.Mutex
+var raceActive bool
+var stopRace chan struct{} // signal to stop current race safely
+
 func startRace(numRacers, trackLength int, updates chan<- RaceUpdate,
 	results chan<- RaceResult, wg *sync.WaitGroup) {
 
-	start := time.Now()
+	raceMu.Lock()
+	if raceActive {
+		fmt.Println("Race already active — skipping new start.")
+		raceMu.Unlock()
+		return
+	}
+	raceActive = true
+	stopRace = make(chan struct{})
+	raceMu.Unlock()
 
-	go func() {
-		wg.Wait()
-		// closes channels after all racers finish
-		close(updates)
-		close(results)
-	}()
+	start := time.Now()
 
 	for id := 0; id < numRacers; id++ {
 		wg.Add(1)
 		go func(racerID int) {
 			defer wg.Done()
-
-			// pushes racer, when finished, to give RaceResult
 			pos := 0
 			base := 60 + rand.Intn(90)
 
 			for pos < trackLength {
-				time.Sleep(time.Duration(base+rand.Intn(60)) * time.Millisecond)
-				step := 1 + rand.Intn(2)
-				pos += step
-				if pos > trackLength {
-					pos = trackLength
-				}
-
-				percent := int(float64(pos) * 100.0 / float64(trackLength))
-				if percent > 100 {
-					percent = 100
-				}
-
-				updates <- RaceUpdate{
-					id:       racerID,
-					position: percent,
-					elapsed:  time.Since(start),
-					finished: pos >= trackLength,
-				}
-
-				if pos >= trackLength {
-
-					results <- RaceResult{
-						id:         racerID,
-						finishTime: time.Since(start),
+				select {
+				case <-stopRace:
+					return // stop gracefully
+				default:
+					time.Sleep(time.Duration(base+rand.Intn(60)) * time.Millisecond)
+					step := 1 + rand.Intn(2)
+					pos += step
+					if pos > trackLength {
+						pos = trackLength
 					}
-					return
+
+					percent := int(float64(pos) * 100.0 / float64(trackLength))
+					if percent > 100 {
+						percent = 100
+					}
+
+					// send update (no closing, safe)
+					updates <- RaceUpdate{
+						id:       racerID,
+						position: percent,
+						elapsed:  time.Since(start),
+						finished: pos >= trackLength,
+					}
+
+					if pos >= trackLength {
+						results <- RaceResult{
+							id:         racerID,
+							finishTime: time.Since(start),
+						}
+						return
+					}
 				}
 			}
 		}(id)
 	}
+
+	// Monitor completion
+	go func() {
+		wg.Wait()
+		raceMu.Lock()
+		defer raceMu.Unlock()
+		raceActive = false
+		close(stopRace) // signal any late goroutines to stop
+		fmt.Println("Race completed — ready for another race!")
+	}()
 }
 
+// Graceful reset called from /reset-race
+func resetRace() {
+	raceMu.Lock()
+	defer raceMu.Unlock()
+	if !raceActive {
+		return
+	}
+	fmt.Println("Resetting race...")
+	select {
+	case <-stopRace:
+		// already closed
+	default:
+		close(stopRace) // stop current race
+	}
+	raceActive = false
+}
+
+// Unchanged logic
 func determineWinner(all []RaceResult) RaceResult {
 	if len(all) == 0 {
 		return RaceResult{id: -1}

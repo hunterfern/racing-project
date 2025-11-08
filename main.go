@@ -13,16 +13,14 @@ import (
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
-
 	const numRacers = 8
 	const trackLength = 120
 
 	uiNumRacers = numRacers
-
 	hub := NewHub()
 	go hub.Run()
-	commands := make(chan Command, 32)
 
+	commands := make(chan Command, 32)
 	updates := make(chan RaceUpdate, 64)
 	results := make(chan RaceResult, numRacers)
 
@@ -44,16 +42,16 @@ func main() {
 
 			endTime := time.Since(startTime)
 			winner := determineWinner(allResults)
+
 			if winner.id >= 0 {
 				fmt.Printf("\n Winner: Racer %d\n", winner.id+1)
 			}
 			fmt.Println(" Total time:", endTime.Seconds())
-			logRaceResults(allResults, winner, endTime)
 
-			break
+			logRaceResults(allResults, winner, endTime)
+			fmt.Printf("\n Race results logged. Ready for another race!\n")
 		}
 	}
 
-	fmt.Printf("\n Race results have been logged to race_log.txt\n")
 	bufio.NewReader(os.Stdin).ReadBytes('\n')
 }
