@@ -19,7 +19,6 @@ type RaceResult struct {
 	finishTime time.Duration
 }
 
-// global mutex + flags to ensure race state resets safely
 var raceMu sync.Mutex
 var raceActive bool
 var stopRace chan struct{} // signal to stop current race safely
@@ -49,7 +48,7 @@ func startRace(numRacers, trackLength int, updates chan<- RaceUpdate,
 			for pos < trackLength {
 				select {
 				case <-stopRace:
-					return // stop gracefully
+					return
 				default:
 					time.Sleep(time.Duration(base+rand.Intn(60)) * time.Millisecond)
 					step := 1 + rand.Intn(2)
@@ -63,7 +62,6 @@ func startRace(numRacers, trackLength int, updates chan<- RaceUpdate,
 						percent = 100
 					}
 
-					// send update (no closing, safe)
 					updates <- RaceUpdate{
 						id:       racerID,
 						position: percent,
@@ -94,7 +92,6 @@ func startRace(numRacers, trackLength int, updates chan<- RaceUpdate,
 	}()
 }
 
-// Graceful reset called from /reset-race
 func resetRace() {
 	raceMu.Lock()
 	defer raceMu.Unlock()
@@ -104,14 +101,12 @@ func resetRace() {
 	fmt.Println("Resetting race...")
 	select {
 	case <-stopRace:
-		// already closed
 	default:
 		close(stopRace) // stop current race
 	}
 	raceActive = false
 }
 
-// Unchanged logic
 func determineWinner(all []RaceResult) RaceResult {
 	if len(all) == 0 {
 		return RaceResult{id: -1}

@@ -44,14 +44,14 @@ func (h *Hub) Run() {
 		case c := <-h.unregister:
 			if _, ok := h.clients[c]; ok {
 				delete(h.clients, c)
-				_ = c.conn.Close() // 🟢 Don't close c.send, keep goroutine isolated
+				_ = c.conn.Close() // keep goroutine isolated
 			}
 		case msg := <-h.broadcast:
 			for c := range h.clients {
 				select {
 				case c.send <- msg:
 				default:
-					// 🟢 Don’t kill connection abruptly; just skip client
+
 					fmt.Println("Skipping slow client")
 				}
 			}
