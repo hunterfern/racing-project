@@ -9,13 +9,59 @@ func generateTrackPageHTML(defaultNumRacers int) string {
 		defaultNumRacers = 12
 	}
 
+	laneHeight := 50
+
 	html := `<!doctype html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Race Track</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Oval Race Track</title>
 <style>
-body { font-family: system-ui, sans-serif; text-align: center; padding: 20px; background: #f6f8fb; }
+:root{
+  --track-bg: #a2bf63;
+  --panel-bg: #111;
+  --lane-number-color: #ffea00;
+  --lane-line: rgba(255,255,255,0.10);
+}
+body {
+  margin: 0;
+  padding: 20px;
+  background: var(--panel-bg);
+  color: #fff;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  text-align: center;
+}
+h1 { margin: 8px 0 12px; }
+
+.track-wrapper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 12px;
+  width: 95%;
+  max-width: 1100px;
+  margin: 0 auto 8px;
+}
+
+.lane-numbers {
+  width: 60px;
+  text-align: right;
+  user-select: none;
+}
+.lane-number {
+  height: ` + fmt.Sprint(laneHeight) + `px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 8px;
+  font-weight: 700;
+  color: var(--lane-number-color);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  box-sizing: border-box;
+}
+
+/* Oval track container */
 #track-container {
 	position: relative; 
 	width: 400px; 
@@ -39,7 +85,8 @@ button:hover, select:hover { background: #f0f0f0; }
 </style>
 </head>
 <body>
-<h1>Race Track</h1>
+<h1>🏁 Oval Race Track</h1>
+
 <div id="toolbar">
   <label for="numRacers"># of Horses:</label>
   <select id="numRacers">
@@ -58,8 +105,13 @@ button:hover, select:hover { background: #f0f0f0; }
   <button id="resultsBtn" style="margin-left:8px;">Results</button>
   <span id="status" style="margin-left:8px; color:#555;">connecting…</span>
 </div>
-<div id="track-container"></div>
-<div id="winner"></div>
+
+<div class="track-wrapper">
+  <div class="lane-numbers" id="laneNumbers"></div>
+  <div id="track-container"></div>
+</div>
+
+<div id="winner">Winner: —</div>
 
 <script>
 let NUM_RACERS = ` + fmt.Sprint(defaultNumRacers) + `;
