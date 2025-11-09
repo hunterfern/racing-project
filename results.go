@@ -38,6 +38,7 @@ button { margin-bottom: 12px; }
 <h1>Race Results</h1>
 <button onclick="window.location.href='/'">Back to Progress</button>
 <pre>%s</pre>
+
 </body>
 </html>`, string(data))
 	})

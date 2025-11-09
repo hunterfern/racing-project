@@ -44,6 +44,27 @@ h1 { margin: 8px 0 12px; }
   margin: 0 auto 8px;
 }
 
+/* Finish line for oval */
+#finish-line {
+    position: absolute;
+    width: 6px;
+    height: 15%;           /* keep at 90% */
+    top: 0%;
+    left: 48%;
+    transform: translateX(-50%);
+    background: repeating-linear-gradient(
+        45deg,
+        #fff,
+        #fff 6px,
+        #000 6px,
+        #000 12px
+    );
+    border-radius: 2px;
+    opacity: 0.9;
+    pointer-events: none;
+}
+
+
 .lane-numbers {
   width: 60px;
   text-align: right;
@@ -63,43 +84,70 @@ h1 { margin: 8px 0 12px; }
 
 /* Oval track container */
 #track-container {
-	position: relative; 
-	width: 400px; 
-	height: 250px; 
-	margin: 40px auto; 
-	background: #a2bf63; 
-	border-radius: 50% / 30%; 
-	border: 2px solid #ccc; }
+    position: relative; 
+    width: 650px;      /* bigger */
+    height: 420px;     /* bigger */
+    margin: 40px auto; 
+    background: var(--track-bg); 
+    border-radius: 50% / 30%; 
+    border: 2px solid #ccc; 
+}
+
+
+
 .racer-dot { 
-	position: absolute; 
-	width: 40px; 
-	height: 40px; 
-	object-fit: contain; 
-	transform: translate(-50%, -50%); 
-	transition: transform 0.1s linear; 
-	pointer-events: none; }
-#winner { margin-top: 20px; font-size: 1.2em; font-weight: bold; }
+    position: absolute; 
+    width: 50px;      /* was 40px */
+    height: 50px;     /* was 40px */
+    object-fit: contain; 
+    transform: translate(-50%, -50%); 
+    transition: left 0.1s linear, top 0.1s linear; 
+    pointer-events: none; 
+}
+
+
+#winner {
+  margin-top: 16px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffd54d;
+}
+
 #toolbar { margin-bottom: 12px; }
 button, select { margin: 4px; padding: 8px 14px; font-size: 1em; border-radius: 6px; border: 1px solid #aaa; background: #fff; cursor: pointer; }
 button:hover, select:hover { background: #f0f0f0; }
+
+/* Leaderboard */
+.leaderboard {
+  width: 260px;
+  margin-left: 12px;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+}
+.leaderboard h2 { margin:0 0 8px 0; font-size:16px; letter-spacing:0.5px; color:#ffd54d; }
+#lbBody { position: relative; height:0; }
+.lb-row { position: absolute; left:8px; right:8px; height:44px; display:grid; grid-template-columns:28px 1fr; gap:8px; padding:6px 8px; border-bottom:1px solid rgba(255,255,255,0.06); align-items:center; font-weight:600; background:rgba(0,0,0,0.12); border-radius:8px; transition: transform 600ms cubic-bezier(.25,.8,.25,1); will-change: transform; }
+.lb-row:last-child { border-bottom:none; }
+.lb-rank { text-align:right; opacity:0.9; }
+.lb-name { text-align:left; }
+
+@media (max-width:900px) { #track-container { width: 92%; } .lane-numbers { display:none; } }
+@media (max-width:700px) { 
+    .racer-dot { width: 40px; height: 40px; } 
+}
 </style>
 </head>
 <body>
-<h1>🏁 Oval Race Track</h1>
+<h1>Oval Race Track</h1>
 
 <div id="toolbar">
   <label for="numRacers"># of Horses:</label>
-  <select id="numRacers">
-    <option value="4">4</option>
-    <option value="5">5</option>
-    <option value="6">6</option>
-    <option value="7">7</option>
-    <option value="8">8</option>
-    <option value="9">9</option>
-    <option value="10">10</option>
-    <option value="11">11</option>
-    <option value="12">12</option>
-  </select>
+  <select id="numRacers">` +
+	func() string { s := ""; for i := 4; i <= 12; i++ { s += fmt.Sprintf("<option value=\"%d\">%d</option>", i, i) }; return s }() +
+	`</select>
   <button id="start" disabled>Start Race</button>
   <button id="homeBtn" style="margin-left:8px;">Home</button>
   <button id="resultsBtn" style="margin-left:8px;">Results</button>
@@ -108,129 +156,173 @@ button:hover, select:hover { background: #f0f0f0; }
 
 <div class="track-wrapper">
   <div class="lane-numbers" id="laneNumbers"></div>
-  <div id="track-container"></div>
+  <div id="track-container">
+  <div id="finish-line"></div>
+</div>
+  <div class="leaderboard" id="leaderboard">
+    <h2>Leaderboard</h2>
+    <div id="lbBody"></div>
+  </div>
 </div>
 
 <div id="winner">Winner: —</div>
 
 <script>
 let NUM_RACERS = ` + fmt.Sprint(defaultNumRacers) + `;
-
 const track = document.getElementById('track-container');
 const dots = [];
 const selectRacers = document.getElementById('numRacers');
+const lbBody = document.getElementById('lbBody');
+let lastOrder = [];
+const ROW_H = 44;
+const rowEls = [];
+let lastLBUpdate = 0;
+const LB_INTERVAL = 300;
+const winnerEl = document.getElementById('winner');
 
 // create racers
 function createRacers() {
-	track.innerHTML = '';
-	dots.length = 0;
-	for (let i = 0; i < NUM_RACERS; i++) {
-		const img = document.createElement('img');
-		img.className = 'racer-dot';
-		const idx = (i % 12) + 1;
-		img.src = '/racer_pictures/racer' + idx + '.png';
-		img.alt = 'Horse ' + (i + 1);
-		track.appendChild(img);
-		dots.push(img);
-	}
+    track.innerHTML = '';
+
+    // Re-add finish line
+    const finishLine = document.createElement('div');
+    finishLine.id = 'finish-line';
+    track.appendChild(finishLine);
+
+    dots.length = 0;
+    lbBody.innerHTML = '';
+    rowEls.length = 0;
+    lastOrder = [];
+
+    for (let i = 0; i < NUM_RACERS; i++) {
+        const img = document.createElement('img');
+        img.className = 'racer-dot';
+        img.src = '/racer_pictures/racer' + ((i % 12) + 1) + '.png';
+        img.alt = 'Horse ' + (i + 1);
+        track.appendChild(img);
+        dots.push(img);
+
+        // leaderboard rows
+        const row = document.createElement('div');
+        row.className = 'lb-row';
+        row.style.transform = 'translateY(' + (i * ROW_H) + 'px)';
+        row.dataset.id = i;
+        row.innerHTML = '<div class="lb-rank">' + (i + 1) + '</div><div class="lb-name">Horse ' + (i + 1) + '</div>';
+        lbBody.appendChild(row);
+        rowEls.push(row);
+    }
+    lbBody.style.height = (ROW_H * NUM_RACERS) + 'px';
 }
 
-const rx = 180, ry = 100, cx = 1, cy = 125;
-function getAngle(pct) { return pct / 100 * 2 * Math.PI; }
-function updateTrack(progress) {
-	for (let i = 0; i < dots.length; i++) {
-		const pct = (progress && progress[i] !== undefined) ? progress[i] : (initialPositions[i] || 0);
-		const angle = getAngle(pct);
-		const x = cx + rx * Math.cos(angle - Math.PI / 2);
-		const y = cy + ry * Math.sin(angle - Math.PI / 2);
-		dots[i].style.transform = "translate(" + x + "px, " + y + "px) translate(-50%, -50%)";
-	}
+
+// convert pct to oval coordinates
+function pctToXY(pct){
+    const w = track.clientWidth;
+    const h = track.clientHeight;
+    const rx = w * 0.42;  // radius x
+    const ry = h * 0.45;  // radius y
+    const cx = w / 2;
+    const cy = h / 2;
+    const angle = pct / 100 * 2 * Math.PI;
+    const x = cx + rx * Math.cos(angle - Math.PI/2);
+    const y = cy + ry * Math.sin(angle - Math.PI/2);
+    return {x, y};
 }
 
-// handle winner objects or numeric IDs and show time if available
-function showWinner(w) {
-	const winnerEl = document.getElementById('winner');
-	if (!w) {
-		winnerEl.textContent = "Winner: —";
-		return;
-	}
 
-	let id, timeText = "";
-	if (typeof w === 'object' && w.id !== undefined) {
-		id = Number(w.id);
-		if (w.finishMs !== undefined) {
-			const secs = (Number(w.finishMs) / 1000).toFixed(3);
-			timeText = " — " + secs + "s";
-		}
-	} else {
-		id = Number(w);
+// update racer positions
+function updateTrack(progress){
+	for(let i=0;i<dots.length;i++){
+		const pct = progress && progress[i]!==undefined?progress[i]:0;
+		const pos=pctToXY(pct);
+		dots[i].style.left=pos.x+'px';
+		dots[i].style.top=pos.y+'px';
 	}
-	if (isNaN(id)) {
-		winnerEl.textContent = "Winner: —";
-		return;
-	}
-	winnerEl.textContent = "Winner: Horse " + (id + 1) + timeText;
-	document.getElementById('start').textContent = "Race Again";
+	updateLeaderboard(progress);
 }
 
-const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
-const ws = new WebSocket(proto + location.host + '/ws');
+// update leaderboard
+function updateLeaderboard(progress){
+	const now=performance.now();
+	if(now-lastLBUpdate<LB_INTERVAL)return;
+	lastLBUpdate=now;
+	const rows=[];
+	for(let i=0;i<NUM_RACERS;i++){
+		const pct = progress && progress[i]!==undefined?progress[i]:0;
+		rows.push([i,pct]);
+	}
+	const orderIndex=new Map();
+	if(lastOrder.length===NUM_RACERS){
+		lastOrder.forEach((id,idx)=>orderIndex.set(id,idx));
+	}
+	rows.sort((a,b)=>{if(b[1]!=a[1])return b[1]-a[1];const ao=orderIndex.has(a[0])?orderIndex.get(a[0]):9999;const bo=orderIndex.has(b[0])?orderIndex.get(b[0]):9999;if(ao!=bo)return ao-bo;return a[0]-b[0];});
+	for(let rank=0;rank<rows.length;rank++){
+		const id=rows[rank][0];
+		const row=rowEls[id];
+		if(!row)continue;
+		row.querySelector('.lb-rank').textContent=(rank+1);
+		row.style.transform='translateY('+(rank*ROW_H)+'px)';
+	}
+	lastOrder=rows.map(r=>r[0]);
+}
 
+// display winner
+function showWinner(w){
+	if(!w){ winnerEl.textContent='Winner: —'; return;}
+	let id,timeText="";
+	if(typeof w==='object'&&w.id!==undefined){
+		id=Number(w.id);
+		if(w.finishMs!==undefined){ timeText=" — "+(Number(w.finishMs)/1000).toFixed(3)+"s"; }
+	} else id=Number(w);
+	if(isNaN(id)){ winnerEl.textContent='Winner: —'; return;}
+	winnerEl.textContent='Winner: Horse '+(id+1)+timeText;
+}
+
+// WebSocket connection & UI
+const proto = location.protocol==='https:'?'wss://':'ws://';
+let ws = new WebSocket(proto+location.host+'/ws');
 const btnStart = document.getElementById('start');
 const statusEl = document.getElementById('status');
 
-ws.onopen = () => {
-	statusEl.textContent = 'connected';
-	btnStart.disabled = false;
-};
-ws.onclose = () => {
-	statusEl.textContent = 'disconnected';
-	btnStart.disabled = true;
+ws.onopen=()=>{ statusEl.textContent='connected'; btnStart.disabled=false; };
+ws.onclose=()=>{ statusEl.textContent='disconnected'; btnStart.disabled=true; };
+ws.onmessage=(e)=>{
+	try{
+		const msg=JSON.parse(e.data);
+		if(msg.type==='progress') updateTrack(msg.data||[]);
+		else if(msg.type==='winner') showWinner(msg.data);
+	}catch(err){console.error(err);}
 };
 
-// Start or restart race
-btnStart.onclick = async () => {
-	if (ws.readyState === WebSocket.OPEN) {
-		const n = parseInt(selectRacers.value);
-		NUM_RACERS = n;
+document.getElementById('homeBtn').onclick = () => {
+    window.location.href = '/'; // change to whatever your home URL is
+};
+
+// Results button: go to results page
+document.getElementById('resultsBtn').onclick = () => {
+    window.location.href = '/results'; // change to your results URL
+};
+
+
+btnStart.onclick=()=>{
+	if(ws.readyState===WebSocket.OPEN){
+		const n=parseInt(selectRacers.value);
+		NUM_RACERS=n;
 		createRacers();
-		ws.send(JSON.stringify({ type: 'START', racers: n }));
-		document.getElementById('winner').textContent = "";
-		document.getElementById('start').textContent = "Start Race";
+		ws.send(JSON.stringify({type:'START',racers:n}));
+		showWinner(null);
 	}
 };
 
-// Track updates
-ws.onmessage = (e) => {
-	try {
-		const msg = JSON.parse(e.data);
-		if (msg.type === 'progress') updateTrack(msg.data || []);
-		else if (msg.type === 'winner') showWinner(msg.data); // ✅ works for both old/new server formats
-	} catch (err) {
-		console.error(err);
-	}
-};
-
-const initialPositions = [];
-(function() {
-	const startPct = 0;
-	const gap = 3.5;
-	for (let i = 0; i < 12; i++) {
-		initialPositions.push((startPct - i * gap + 100) % 100);
-	}
-})();
-
-window.addEventListener('load', () => {
+selectRacers.onchange=()=>{
+	NUM_RACERS=parseInt(selectRacers.value);
 	createRacers();
-	updateTrack();
-	selectRacers.value = NUM_RACERS;
-});
-
-// Navigation
-document.getElementById("homeBtn").onclick = () => { window.location.href = "/landing"; };
-document.getElementById("resultsBtn").onclick = () => { window.location.href = "/results"; };
+	showWinner(null);
+	updateLeaderboard(new Array(NUM_RACERS).fill(0));
+};
 </script>
 </body>
 </html>`
+
 	return html
 }
