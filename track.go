@@ -27,7 +27,7 @@ func generateTrackPageHTML(defaultNumRacers int) string {
 body {
   margin: 0;
   padding: 20px;
-  background: var(--panel-bg);
+  background: linear-gradient(135deg, #74ABE2, #5563DE);
   color: #fff;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   text-align: center;
@@ -90,7 +90,7 @@ h1 { margin: 8px 0 12px; }
     margin: 40px auto; 
     background: var(--track-bg); 
     border-radius: 50% / 30%; 
-    border: 2px solid #ccc; 
+    border: 2px solid #000; 
 }
 
 
@@ -110,7 +110,7 @@ h1 { margin: 8px 0 12px; }
   margin-top: 16px;
   font-size: 20px;
   font-weight: 700;
-  color: #ffd54d;
+  color: #ffffffff;
 }
 
 #toolbar { margin-bottom: 12px; }
@@ -127,9 +127,28 @@ button:hover, select:hover { background: #f0f0f0; }
   padding: 12px;
   box-shadow: 0 4px 14px rgba(0,0,0,0.3);
 }
-.leaderboard h2 { margin:0 0 8px 0; font-size:16px; letter-spacing:0.5px; color:#ffd54d; }
+.leaderboard h2 { 
+margin:0 0 8px 0; 
+font-size:16px; 
+letter-spacing:0.5px; 
+color:#fff; }
 #lbBody { position: relative; height:0; }
-.lb-row { position: absolute; left:8px; right:8px; height:44px; display:grid; grid-template-columns:28px 1fr; gap:8px; padding:6px 8px; border-bottom:1px solid rgba(255,255,255,0.06); align-items:center; font-weight:600; background:rgba(0,0,0,0.12); border-radius:8px; transition: transform 600ms cubic-bezier(.25,.8,.25,1); will-change: transform; }
+.lb-row { position: absolute; 
+left:8px; 
+right:8px; 
+height:44px; 
+display:grid; 
+grid-template-columns:28px 1fr; 
+gap:8px; 
+padding:6px 8px; 
+border-bottom:1px solid rgba(255,255,255,0.00); 
+align-items:center; 
+font-weight:600; 
+background:rgba(0,0,0,0.0); 
+border-radius:8px; 
+transition: transform 600ms cubic-bezier(.25,.8,.25,1); 
+will-change: transform; 
+}
 .lb-row:last-child { border-bottom:none; }
 .lb-rank { text-align:right; opacity:0.9; }
 .lb-name { text-align:left; }
@@ -295,12 +314,12 @@ ws.onmessage=(e)=>{
 };
 
 document.getElementById('homeBtn').onclick = () => {
-    window.location.href = '/'; // change to whatever your home URL is
+    window.location.href = '/'; 
 };
 
 // Results button: go to results page
 document.getElementById('resultsBtn').onclick = () => {
-    window.location.href = '/results'; // change to your results URL
+    window.location.href = '/results'; 
 };
 
 

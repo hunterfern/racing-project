@@ -28,15 +28,46 @@ func resultsHandler() {
 <meta charset="utf-8">
 <title>Race Results</title>
 <style>
-body { font-family: system-ui, sans-serif; padding: 20px; background:#f6f8fb; }
-h1 { text-align: center; }
-pre { background: #fff; padding: 12px; border: 1px solid #ccc; overflow-x: auto; }
-button { margin-bottom: 12px; }
+body { 
+  font-family: system-ui, sans-serif; 
+  padding: 20px; 
+  background: linear-gradient(135deg, #74ABE2, #3d4de3ff); 
+  color: white; /* <— sets default text color */
+}
+
+h1 { 
+  text-align: center; 
+  color: #ffffffff; 
+}
+
+pre { 
+  background: #516f8dff; 
+  padding: 12px; 
+  border: 1px solid #000000ff; 
+  overflow-x: auto; 
+  color: #ffffffff; 
+}
+
+button { 
+  margin-bottom: 12px; 
+  background-color: #ffffffff; 
+  color: black; 
+  border: none; 
+  padding: 8px 14px; 
+  border-radius: 8px; 
+  cursor: pointer; 
+}
+
+button:hover {
+  background-color: #ffffffff;
+}
 </style>
 </head>
 <body>
 <h1>Race Results</h1>
-<button onclick="window.location.href='/'">Back to Progress</button>
+<button onclick="window.location.href='/'">Home</button>
+<button onclick="location.href='/track'">Track 1</button>
+<button onclick="location.href='/track2'">Track 2</button>
 <pre>%s</pre>
 
 </body>

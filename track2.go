@@ -25,12 +25,12 @@ func generateTrack2PageHTML(defaultNumRacers int) string {
   --track-radius: 10px;
   --track-shadow: 0 0 15px rgba(0,0,0,0.5);
   --lane-line: rgba(255,255,255,0.12);
-  --lane-number-color: #ffea00;
+  --lane-number-color: #ffffffff;
 }
 body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   text-align: center;
-  background: #111;
+  background: linear-gradient(135deg, #74ABE2, #5563DE);
   color: #fff;
   margin: 0;
   padding: 20px;
@@ -114,7 +114,7 @@ h1 { margin-top: 8px; }
   margin-top: 16px;
   font-size: 20px;
   font-weight: 700;
-  color: #ffd54d;
+  color: #ffffffff;
 }
 
 #toolbar {
@@ -146,7 +146,7 @@ select:hover, button:hover { background: #f0f0f0; }
   margin: 0 0 8px 0;
   font-size: 16px;
   letter-spacing: 0.5px;
-  color: #ffd54d;
+  color: #ffffffff;
 }
 
 #lbBody {  position: relative; height: 0; }
@@ -159,10 +159,10 @@ select:hover, button:hover { background: #f0f0f0; }
   grid-template-columns: 28px 1fr;
   gap: 8px;
   padding: 6px 8px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0);
   align-items: center;
   font-weight: 600;
-  background: rgba(0,0,0,0.12);
+  background: rgba(0,0,0,0);
   border-radius: 8px;
   transition: transform 600ms cubic-bezier(.25,.8,.25,1);
   will-change: transform;
