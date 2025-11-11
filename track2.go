@@ -172,6 +172,15 @@ select:hover, button:hover { background: #f0f0f0; }
 .lb-rank { text-align: right; opacity: 0.9; }
 .lb-name { text-align: left; }
 
+#odds .odds-row{
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  font-weight: 600;
+}
+#odds .odds-row:last-child{ border-bottom:none; }
+
 
 @media (max-width: 700px) {
   .lane-numbers { display: none; }
@@ -208,6 +217,10 @@ select:hover, button:hover { background: #f0f0f0; }
     <h2>Leaderboard</h2>
     <div id="lbBody"></div>
   </div>
+  <div class="leaderboard" id="oddsPanel">
+    <h2>Odds</h2>
+    <div id="odds"></div>
+  </div>
 </div>
 
 <div id="winner">Winner: —</div>
@@ -223,6 +236,7 @@ const selectRacers = document.getElementById('numRacers');
 const statusEl = document.getElementById('status');
 const homeBtn = document.getElementById('homeBtn');
 const lbBody = document.getElementById('lbBody');
+const oddsEl = document.getElementById('odds');
 let lastOrder = [];
 const ROW_H = 44;
 const rowEls = [];
@@ -389,6 +403,31 @@ selectRacers.addEventListener('change', () => {
   btnStart.textContent = 'Start Race';
 });
 
+function renderOdds(lines){
+  if (!Array.isArray(lines) || !oddsEl) return;
+
+  // Sort by best price (lowest absolute American odds first)
+  var sorted = lines.slice().sort(function(a, b){
+    var aa = Math.abs(a.amer);
+    var bb = Math.abs(b.amer);
+    return aa - bb;
+  });
+
+  oddsEl.innerHTML = sorted.map(function(l){
+    // american odds string
+    var sign = (l.amer >= 0 ? '+' : '') + String(l.amer);
+
+    // fractional odds from Go: fracN/fracD (note the field names)
+    var frac = (l.fracN && l.fracD) ? (' (' + l.fracN + '/' + l.fracD + ')') : '';
+
+    // build one row using plain string concatenation
+    return '<div class="odds-row">' +
+             '<span>#' + (l.id + 1) + ' Racer ' + (l.id + 1) + '</span>' +
+             '<span>' + sign + frac + '</span>' +
+           '</div>';
+  }).join('');
+}
+
 // handle progress/winner from server
 ws.addEventListener('message', (evt) => {
   try {
@@ -398,8 +437,10 @@ ws.addEventListener('message', (evt) => {
       updateLeaderboard(msg.data || []);
     }
     else if (msg.type==='winner') showWinner(msg.data);
+    else if (msg.type==='lines') renderOdds(msg.data);
   } catch(err){console.error(err);}
 });
+
 
 // navigation
 homeBtn.addEventListener('click', () => { btnStart.textContent='Start Race'; window.location.href='/'; });

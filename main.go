@@ -57,6 +57,11 @@ func main() {
 			// create a fresh wait group for this race
 			var wg sync.WaitGroup
 
+			lines, stats := GetRaceLines(numRacers)
+			setCurrentStats(stats)
+
+			hub.broadcast <- mustJSON(WSMessage{Type: "lines", Data: lines})
+
 			// start the race (race.go's startRace uses passed numRacers)
 			startRace(numRacers, trackLength, updates, results, &wg)
 
