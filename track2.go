@@ -585,13 +585,33 @@ function openSlip(){
   betSlipEl.setAttribute('aria-hidden','false');
 
   if (!linesState.length) {
-    try { ws.send(JSON.stringify({ type: 'LINES', racers: NUM_RACERS })); } catch {}
-    horseSel.innerHTML = '';
+    // Request odds
+    try {
+        ws.send(JSON.stringify({ type: 'LINES', racers: NUM_RACERS }));
+    } catch {}
+
+    // Populate with placeholder horses so user can select one
+    var options = [];
+    for (var i = 0; i < NUM_RACERS; i++) {
+        options.push(
+            '<option value="' + i + '" data-amer="0">#' + (i+1) + ' Racer ' + (i+1) + ' — (loading odds…)</option>'
+        );
+    }
+    horseSel.innerHTML = options.join('');
+
     oddsPreview.textContent = 'Odds: — (loading…)';
     payoutPreview.textContent = 'Payout: —';
     placeBtn.disabled = true;
-    return;
-  }
+} else {
+    populateHorseSelect();
+}
+
+
+if (horseSel.options.length && horseSel.selectedIndex < 0) {
+    horseSel.selectedIndex = 0;
+}
+updateSlipPreview();
+
 
   populateHorseSelect();
   if (horseSel.options.length && horseSel.selectedIndex < 0) {
