@@ -328,6 +328,8 @@ input[type="number"] {
 <div id="winner">Winner: —</div>
 
 <script>
+// Reset balance on fresh page load (simulating server start)
+var RESET_ON_SERVER_START = true; 
 let NUM_RACERS = ` + fmt.Sprint(defaultNumRacers) + `;
 const laneHeight = ` + fmt.Sprint(laneHeight) + `;
 const trackEl = document.getElementById('track');
@@ -363,10 +365,32 @@ var slipMsg = document.getElementById('slipMsg');
 var balanceEl = document.getElementById('balance');
 
 function loadBalance(){
+  if (RESET_ON_SERVER_START) {
+    balance = 100;      // reset every time the page loads
+    saveBalance();      // save to localStorage
+    RESET_ON_SERVER_START = false; // only do it once per page load
+    renderBalance();
+    return;
+  }
+
   var v = window.localStorage.getItem('balance_v1');
-  if (!v) { balance = 100; saveBalance(); }
-  else { balance = Math.max(0, Number(v) || 0); }
+  if (!v) { 
+      balance = 100; 
+      saveBalance(); 
+  } else { 
+      balance = Math.max(0, Number(v) || 0); 
+  }
   renderBalance();
+}
+function checkGameOver() {
+  if (balance < 1) {
+      alert("Game over! Your money has been reset to $100.");
+      balance = 100;
+      saveBalance();
+      renderBalance();
+      activeBet = null;
+      slipMsg.textContent = '';
+  }
 }
 function saveBalance(){
   window.localStorage.setItem('balance_v1', String(balance));
@@ -675,7 +699,12 @@ placeBtn.addEventListener('click', function(){
 
   // lock bet
   activeBet = { id: id, amer: amer, frac: frac, amount: amount };
-  balance -= amount; saveBalance(); renderBalance();
+  balance -= amount; saveBalance(); renderBalance(); 
+  balance -= amount; 
+  saveBalance(); 
+  renderBalance();
+  checkGameOver(); // <- add this
+
 
   slipMsg.textContent = 'Bet placed: #' + (id+1) + ' for $' + amount +
                         ' at ' + (amer>=0?('+'+amer):amer) + (frac?(' ('+frac+')'):'') + '.';
@@ -692,15 +721,15 @@ function settleBet(win){
     var ret = amerPayout(activeBet.amer, activeBet.amount);
     var profit = ret - activeBet.amount;
     balance += ret; // give stake + profit back
-    saveBalance(); renderBalance();
+    saveBalance(); renderBalance(); checkGameOver();
     slipMsg.textContent = 'WIN! #' + (win.id+1) + ' — returned $' + ret.toFixed(2) + ' (profit $' + profit.toFixed(2) + ').';
   } else {
     slipMsg.textContent = 'Lost. Winner: #' + (win.id+1) + '. -$' + activeBet.amount.toFixed(2) + '.';
+    checkGameOver(); // <- add this
     // stake already deducted
   }
   activeBet = null;
 }
-
 
 ws.addEventListener('message', (evt) => {
   let msg;
