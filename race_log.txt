@@ -2751,3 +2751,31 @@ Placing:
   8) Racer 5 6.44s
 >>>>>>> Stashed changes
 
+=== Race @ 2025-11-13T14:04:41-06:00 ===
+Total racers: 8
+Winner: Racer 3 (5.62s)
+Total wall time: 0.00s
+Placing:
+  1) Racer 3 5.62s
+  2) Racer 2 5.82s
+  3) Racer 4 6.00s
+  4) Racer 0 6.05s
+  5) Racer 5 6.13s
+  6) Racer 6 6.14s
+  7) Racer 1 6.22s
+  8) Racer 7 6.28s
+
+=== Race @ 2025-11-13T14:42:44-06:00 ===
+Total racers: 8
+Winner: Racer 4 (5.11s)
+Total wall time: 0.00s
+Placing:
+  1) Racer 4 5.11s
+  2) Racer 5 5.64s
+  3) Racer 1 5.79s
+  4) Racer 2 5.87s
+  5) Racer 6 6.25s
+  6) Racer 7 6.38s
+  7) Racer 0 6.46s
+  8) Racer 3 7.13s
+

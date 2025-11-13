@@ -84,47 +84,76 @@ func setupRoutesOnce(hub *Hub, commands chan<- Command, mu *sync.RWMutex, progre
 		http.HandleFunc("/landing", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			fmt.Fprintf(w, `
-			<!doctype html>
-			<meta charset="utf-8" />
-			<title>Race Simulator</title>
-			<style>
-				body {
-					font-family: system-ui, sans-serif;
-					display: flex;
-					flex-direction: column;
-					align-items: center;
-					justify-content: center;
-					height: 100vh;
-					background: linear-gradient(135deg, #74ABE2, #5563DE);
-					color: white;
-				}
-				h1 {
-					font-size: 2.5em;
-					margin-bottom: 30px;
-				}
-				button {
-					background: white;
-					color: #333;
-					border: none;
-					padding: 12px 24px;
-					margin: 10px;
-					border-radius: 8px;
-					font-size: 1.1em;
-					cursor: pointer;
-					transition: transform 0.15s, background 0.3s;
-				}
-				button:hover {
-					background: #f0f0f0;
-					transform: scale(1.05);
-				}
-			</style>
-			<h1>Select a Race Track</h1>
-			<div>
-				<button onclick="location.href='/track'">🏁 Track 1</button>
-				<button onclick="location.href='/track2'">🚗 Track 2</button>
-			</div>
-			`)
+    <!doctype html>
+    <meta charset="utf-8" />
+    <title>Race Simulator</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #74ABE2, #5563DE);
+            color: white;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+        }
+        .track {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px;
+        }
+        img {
+            width: 500px;
+            height: auto;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        button {
+            background: white;
+            color: #333;
+            border: none;
+            padding: 18px 32px;
+            margin: 10px;
+            border-radius: 8px;
+            font-size: 1.4em;
+            cursor: pointer;
+            transition: transform 0.15s, background 0.3s;
+        }
+        button:hover {
+            background: #f0f0f0;
+            transform: scale(1.05);
+        }
+        .track-container {
+            display: flex;
+            gap: 60px;
+        }
+    </style>
+
+    <h2 style="font-size: 2.2em; margin-bottom: 10px;">Welcome to Horse Racing!</h2>
+	<h1 style="font-size: 2em; margin-bottom: 30px;">Select a Race Track</h1>
+    <div class="track-container">
+        <div class="track">
+            <img src="/track_pictures/ovaltrack.png?v=1" alt="Track 1">
+            <button onclick="location.href='/track'">Track 1</button>
+        </div>
+
+        <div class="track">
+            <img src="/track_pictures/track2.png?v=1" alt="Track 2">
+            <button onclick="location.href='/track2'">Track 2</button>
+        </div>
+    </div>
+    `)
 		})
+
+		http.Handle("/track_pictures/", http.StripPrefix("/track_pictures/", http.FileServer(http.Dir("track_pictures"))))
 
 		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/landing", http.StatusSeeOther)
