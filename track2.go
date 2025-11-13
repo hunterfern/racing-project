@@ -181,6 +181,79 @@ select:hover, button:hover { background: #f0f0f0; }
 }
 #odds .odds-row:last-child{ border-bottom:none; }
 
+#betSlip{
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  display: flex; justify-content: center;
+  transform: translateY(calc(100% - 48px));
+  transition: transform 300ms ease;
+  z-index: 1000;
+  
+  pointer-events: auto;
+}
+
+#betSlip[aria-hidden="false"]{
+  transform: translateY(0%);
+}
+
+.slip-paper{
+  width: 420px; max-width: 92vw;
+  background: #fffef6;
+  color: #222;
+  border: 1px dashed #222;
+  border-radius: 10px;
+  box-shadow: 0 10px 32px rgba(0,0,0,.35);
+  padding: 14px 14px 16px;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+}
+
+.slip-header{
+  display:flex; align-items:center; justify-content:space-between;
+  font-weight: 800; letter-spacing: .5px;
+  border-bottom: 1px dashed #444; padding-bottom:8px; margin-bottom:10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.slip-header button{
+  border:none; background:transparent; font-size:20px; cursor:pointer;
+}
+
+.slip-row{
+  display:grid; grid-template-columns: 110px 1fr; gap:10px; align-items:center;
+  margin: 10px 0;
+}
+
+.slip-row label{ font-weight:700; }
+
+.slip-row select, .slip-row input{
+  padding:8px 10px; border:1px solid #bbb; border-radius:6px; font-size:15px;
+}
+
+.slip-note{
+  font-size: 14px; color:#444; margin:6px 0;
+}
+
+.slip-place{
+  width:100%; margin-top:10px; padding:10px 12px;
+  border:none; border-radius:8px; cursor:pointer;
+  background:#111; color:#fff; font-weight:700;
+}
+
+.slip-place:disabled{ opacity:.5; cursor:not-allowed; }
+
+.slip-msg{ margin-top:10px; min-height:18px; font-weight:700; }
+
+.slip-header { cursor: pointer; }
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
 
 @media (max-width: 700px) {
   .lane-numbers { display: none; }
@@ -207,6 +280,7 @@ select:hover, button:hover { background: #f0f0f0; }
   <button id="start" disabled>Start Race</button>
   <button id="homeBtn">Home</button>
   <button id="resultsBtn">Results</button>
+  <span id="balance" style="margin-left:12px;color:#ffd54d;font-weight:700">$100.00</span>
   <span id="status" style="margin-left:12px;color:#bbb">connecting…</span>
 </div>
 
@@ -222,6 +296,34 @@ select:hover, button:hover { background: #f0f0f0; }
     <div id="odds"></div>
   </div>
 </div>
+
+<!-- Bet Slip Panel -->
+<div id="betSlip" aria-hidden="true">
+  <div class="slip-paper">
+    <div class="slip-header">
+      <div>BET SLIP</div>
+      <button id="slipClose" title="Close">&times;</button>
+    </div>
+
+    <div class="slip-row">
+      <label for="betHorse">Horse</label>
+      <select id="betHorse"></select>
+    </div>
+
+    <div class="slip-row">
+      <label for="betAmount">Amount ($)</label>
+      <input id="betAmount" type="number" min="1" step="1" placeholder="Enter stake"/>
+    </div>
+
+    <div id="oddsPreview" class="slip-note">Odds: —</div>
+    <div id="payoutPreview" class="slip-note">Payout: —</div>
+
+    <button id="placeBet" class="slip-place" disabled>Place Bet</button>
+
+    <div id="slipMsg" class="slip-msg"></div>
+  </div>
+</div>
+
 
 <div id="winner">Winner: —</div>
 
@@ -242,8 +344,37 @@ const ROW_H = 44;
 const rowEls = [];
 let lastLBUpdate = 0;
 const LB_INTERVAL = 300;
-
 const dots = [];
+
+var linesState = [];           // latest odds lines from server
+var balance = 0;               // dollars
+var activeBet = null;          // {id, amer, frac, amount}
+var raceInProgress = false;
+
+var betSlipEl = document.getElementById('betSlip');
+var slipCloseBtn = document.getElementById('slipClose');
+var slipHeader = document.querySelector('#betSlip .slip-header');
+var horseSel = document.getElementById('betHorse');
+var amtInput = document.getElementById('betAmount');
+var placeBtn = document.getElementById('placeBet');
+var oddsPreview = document.getElementById('oddsPreview');
+var payoutPreview = document.getElementById('payoutPreview');
+var slipMsg = document.getElementById('slipMsg');
+var balanceEl = document.getElementById('balance');
+
+function loadBalance(){
+  var v = window.localStorage.getItem('balance_v1');
+  if (!v) { balance = 100; saveBalance(); }
+  else { balance = Math.max(0, Number(v) || 0); }
+  renderBalance();
+}
+function saveBalance(){
+  window.localStorage.setItem('balance_v1', String(balance));
+}
+function renderBalance(){
+  balanceEl.textContent = '$' + balance.toFixed(2);
+}
+loadBalance();
 
 // draw horses and lanes
 function createRacers() {
@@ -283,6 +414,7 @@ function createRacers() {
 
   buildLeaderboardRows();
 }
+
 
 function getSuffix(n) {
   if (n % 10 === 1 && n % 100 !== 11) return 'st';
@@ -380,12 +512,18 @@ function showWinner(w) {
 const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
 const ws = new WebSocket(proto + location.host + '/ws');
 
-ws.addEventListener('open', () => { statusEl.textContent='connected'; btnStart.disabled=false; });
+ws.addEventListener('open', () => { statusEl.textContent='connected'; 
+  btnStart.disabled=false;
+  try { ws.send(JSON.stringify({ type: 'LINES', racers: NUM_RACERS })); } catch (_) {}
+});
 ws.addEventListener('close', () => { statusEl.textContent='disconnected'; btnStart.disabled=true; });
 
 btnStart.addEventListener('click', () => {
   if (ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type: 'START', racers: NUM_RACERS }));
+    raceInProgress = true;
+    updateSlipPreview();
+
     showWinner(null);
     btnStart.textContent = 'Racing...';
     btnStart.disabled = true;
@@ -401,53 +539,194 @@ selectRacers.addEventListener('change', () => {
   showWinner(null);
   updateLeaderboard(new Array(NUM_RACERS).fill(0));
   btnStart.textContent = 'Start Race';
+  try { ws.send(JSON.stringify({ type: 'LINES', racers: NUM_RACERS })); } catch (_) {}
 });
 
 function renderOdds(lines){
   if (!Array.isArray(lines) || !oddsEl) return;
 
-  // Sort by best price (lowest absolute American odds first)
+  linesState = lines.slice();
+
+  // sort by best price (lowest absolute American odds first)
   var sorted = lines.slice().sort(function(a, b){
-    var aa = Math.abs(a.amer);
-    var bb = Math.abs(b.amer);
+    var aa = a.amer >= 0 ? a.amer : Math.abs(a.amer);
+    var bb = b.amer >= 0 ? b.amer : Math.abs(b.amer);
     return aa - bb;
   });
 
   oddsEl.innerHTML = sorted.map(function(l){
-    // american odds string
-    var sign = (l.amer >= 0 ? '+' : '') + String(l.amer);
-
-    // fractional odds from Go: fracN/fracD (note the field names)
+    var sign = l.amer >= 0 ? ('+' + l.amer) : ('' + l.amer);
     var frac = (l.fracN && l.fracD) ? (' (' + l.fracN + '/' + l.fracD + ')') : '';
-
-    // build one row using plain string concatenation
     return '<div class="odds-row">' +
              '<span>#' + (l.id + 1) + ' Racer ' + (l.id + 1) + '</span>' +
              '<span>' + sign + frac + '</span>' +
            '</div>';
   }).join('');
+
+  if (betSlipEl.getAttribute('aria-hidden') === 'false') {
+    populateHorseSelect();
+    updateSlipPreview();
+  }
 }
 
-// handle progress/winner from server
-ws.addEventListener('message', (evt) => {
-  try {
-    const msg = JSON.parse(evt.data);
-    if (msg.type==='progress'){
-      updateTrack(msg.data||[]);
-      updateLeaderboard(msg.data || []);
-    }
-    else if (msg.type==='winner') showWinner(msg.data);
-    else if (msg.type==='lines') renderOdds(msg.data);
-  } catch(err){console.error(err);}
+function populateHorseSelect() {
+  horseSel.innerHTML = linesState.map(function(l){
+    var sign = l.amer >= 0 ? ('+' + l.amer) : ('' + l.amer);
+    var frac = (l.fracD && l.fracN) ? (' (' + l.fracN + '/' + l.fracD + ')') : '';
+    return '<option value="'+ l.id +'" data-amer="'+ l.amer +'" data-frac="'+ (l.fracD && l.fracN ? (l.fracN + '/' + l.fracD) : '') +'">#'+ (l.id+1) +' Racer '+ (l.id+1) +' — '+ sign + frac +'</option>';
+  }).join('');
+
+}
+
+function closeSlip(){ betSlipEl.setAttribute('aria-hidden','true'); }
+
+function openSlip(){
+  slipMsg.textContent = '';
+  betSlipEl.setAttribute('aria-hidden','false');
+
+  if (!linesState.length) {
+    try { ws.send(JSON.stringify({ type: 'LINES', racers: NUM_RACERS })); } catch {}
+    horseSel.innerHTML = '';
+    oddsPreview.textContent = 'Odds: — (loading…)';
+    payoutPreview.textContent = 'Payout: —';
+    placeBtn.disabled = true;
+    return;
+  }
+
+  populateHorseSelect();
+  if (horseSel.options.length && horseSel.selectedIndex < 0) {
+    horseSel.selectedIndex = 0;
+  }
+  updateSlipPreview();
+}
+
+function toggleSlip(){
+  const isOpen = betSlipEl.getAttribute('aria-hidden') === 'false';
+  if (isOpen) closeSlip(); else openSlip();
+}
+
+slipHeader.addEventListener('click', toggleSlip);
+slipCloseBtn.addEventListener('click', closeSlip);
+
+horseSel.addEventListener('change', updateSlipPreview);
+amtInput.addEventListener('input', updateSlipPreview);
+
+function amerPayout(amer, stake){
+  
+  var a = Number(amer);
+  var s = Number(stake);
+  if (!isFinite(a) || !isFinite(s) || s <= 0) return 0;
+  if (a > 0) return s + (s * (a/100));
+  
+  return s + (s * (100/Math.abs(a)));
+}
+function updateSlipPreview(){
+  var opt = horseSel.options[horseSel.selectedIndex];
+  if (!opt){ 
+    oddsPreview.textContent = 'Odds: —'; 
+    payoutPreview.textContent = 'Payout: —'; 
+    placeBtn.disabled = true; 
+    return; 
+  }
+  var amer = Number(opt.getAttribute('data-amer'));
+  var frac = opt.getAttribute('data-frac');
+  var amount = Number(amtInput.value || 0);
+
+  var sign = amer >= 0 ? ('+' + amer) : ('' + amer);
+  oddsPreview.textContent = 'Odds: ' + sign + (frac ? (' (' + frac + ')') : '');
+
+  var valid = isFinite(amount) && amount > 0 && amount <= balance;
+  var payout = amerPayout(amer, amount);
+  payoutPreview.textContent = amount > 0 ? ('Payout: $' + payout.toFixed(2)) : 'Payout: —';
+  placeBtn.disabled = !valid;
+}
+
+placeBtn.addEventListener('click', function(){
+  var opt = horseSel.options[horseSel.selectedIndex];
+  if (!opt) return;
+  var amer = Number(opt.getAttribute('data-amer'));
+  var frac = opt.getAttribute('data-frac');
+  var id = Number(opt.value);
+  var amount = Math.floor(Number(amtInput.value || 0));
+  if (!isFinite(amount) || amount <= 0) { slipMsg.textContent = 'Enter a valid amount.'; return; }
+  if (amount > balance) { slipMsg.textContent = 'Insufficient balance.'; return; }
+  if (raceInProgress) { slipMsg.textContent = 'Wait for this race to finish.'; return; }
+  if (activeBet) { slipMsg.textContent = 'You already have a bet placed.'; return; }
+
+  // lock bet
+  activeBet = { id: id, amer: amer, frac: frac, amount: amount };
+  balance -= amount; saveBalance(); renderBalance();
+
+  slipMsg.textContent = 'Bet placed: #' + (id+1) + ' for $' + amount +
+                        ' at ' + (amer>=0?('+'+amer):amer) + (frac?(' ('+frac+')'):'') + '.';
+  placeBtn.disabled = true;
+  amtInput.value = '';
+  payoutPreview.textContent = 'Payout: —';
 });
 
+function settleBet(win){
+  if (!activeBet) return; // no bet
+  if (!win || typeof win.id !== 'number'){ slipMsg.textContent = ''; activeBet = null; return; }
+
+  if (win.id === activeBet.id){
+    var ret = amerPayout(activeBet.amer, activeBet.amount);
+    var profit = ret - activeBet.amount;
+    balance += ret; // give stake + profit back
+    saveBalance(); renderBalance();
+    slipMsg.textContent = 'WIN! #' + (win.id+1) + ' — returned $' + ret.toFixed(2) + ' (profit $' + profit.toFixed(2) + ').';
+  } else {
+    slipMsg.textContent = 'Lost. Winner: #' + (win.id+1) + '. -$' + activeBet.amount.toFixed(2) + '.';
+    // stake already deducted
+  }
+  activeBet = null;
+}
+
+
+ws.addEventListener('message', (evt) => {
+  let msg;
+  try { msg = JSON.parse(evt.data); } catch { return; }
+
+  switch (msg.type) {
+    case 'progress':
+      updateTrack(msg.data || []);
+      updateSlipPreview();
+      break;
+
+    case 'winner':
+      raceInProgress = false;
+      showWinner(msg.data);
+      settleBet(msg.data);
+      updateSlipPreview();
+      break;
+
+    case 'lines':
+      linesState = Array.isArray(msg.data) ? msg.data.slice() : [];
+      renderOdds(linesState);
+      raceInProgress = false;
+      if (betSlipEl.getAttribute('aria-hidden') === 'false') {
+        populateHorseSelect();
+        if (horseSel.options.length && horseSel.selectedIndex < 0) {
+          horseSel.selectedIndex = 0;
+        }
+        updateSlipPreview();
+      }
+      break;
+  }
+});
 
 // navigation
 homeBtn.addEventListener('click', () => { btnStart.textContent='Start Race'; window.location.href='/'; });
 document.getElementById('resultsBtn').addEventListener('click', ()=>window.location.href='/results');
 
 window.addEventListener('resize', ()=>updateTrack([]));
-window.addEventListener('load', () => { createRacers(); selectRacers.value=NUM_RACERS; buildLeaderboardRows(); updateTrack([]); updateLeaderboard(new Array(NUM_RACERS).fill(0)); });
+window.addEventListener('load', () => { 
+  createRacers(); 
+  selectRacers.value=NUM_RACERS; 
+  buildLeaderboardRows(); 
+  updateTrack([]); 
+  updateLeaderboard(new Array(NUM_RACERS).fill(0));
+  try { ws.send(JSON.stringify({ type: 'LINES', racers: NUM_RACERS })); } catch {}
+});
 </script>
 </body>
 </html>`
