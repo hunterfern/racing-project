@@ -3171,3 +3171,118 @@ Placing:
   7) Racer 2 6.83s
   8) Racer 3 7.07s
 
+=== Race @ 2025-11-15T12:52:42-06:00 ===
+Total racers: 4
+Winner: Racer 0 (5.15s)
+Total wall time: 0.00s
+Placing:
+  1) Racer 0 5.15s
+  2) Racer 2 5.31s
+  3) Racer 1 5.55s
+  4) Racer 3 5.94s
+
+=== Race @ 2025-11-15T13:03:10-06:00 ===
+Total racers: 8
+Winner: Racer 2 (5.69s)
+Total wall time: 0.00s
+Placing:
+  1) Racer 2 5.69s
+  2) Racer 6 5.85s
+  3) Racer 4 5.92s
+  4) Racer 7 5.99s
+  5) Racer 5 6.23s
+  6) Racer 1 6.31s
+  7) Racer 3 6.40s
+  8) Racer 0 6.94s
+
+=== Race @ 2025-11-15T13:03:33-06:00 ===
+Total racers: 8
+Winner: Racer 1 (5.40s)
+Total wall time: 0.00s
+Placing:
+  1) Racer 1 5.40s
+  2) Racer 3 5.84s
+  3) Racer 7 6.00s
+  4) Racer 6 6.03s
+  5) Racer 5 6.15s
+  6) Racer 0 6.16s
+  7) Racer 4 6.31s
+  8) Racer 2 6.49s
+
+=== Race @ 2025-11-15T13:05:55-06:00 ===
+Total racers: 8
+Winner: Racer 6 (5.57s)
+Total wall time: 0.00s
+Placing:
+  1) Racer 6 5.57s
+  2) Racer 3 5.62s
+  3) Racer 2 5.67s
+  4) Racer 4 5.69s
+  5) Racer 0 5.96s
+  6) Racer 1 6.33s
+  7) Racer 7 6.45s
+  8) Racer 5 6.61s
+
+=== Race @ 2025-11-15T13:10:22-06:00 ===
+Total racers: 8
+Winner: Racer 2 (5.70s)
+Total wall time: 0.00s
+Placing:
+  1) Racer 2 5.70s
+  2) Racer 7 5.79s
+  3) Racer 1 5.88s
+  4) Racer 5 5.93s
+  5) Racer 0 6.00s
+  6) Racer 3 6.02s
+  7) Racer 4 6.04s
+  8) Racer 6 6.10s
+
+=== Race @ 2025-11-15T13:10:46-06:00 ===
+Total racers: 8
+Winner: Racer 3 (5.42s)
+Total wall time: 0.00s
+Placing:
+  1) Racer 3 5.42s
+  2) Racer 0 6.04s
+  3) Racer 6 6.09s
+  4) Racer 4 6.12s
+  5) Racer 1 6.24s
+  6) Racer 7 6.48s
+  7) Racer 5 6.54s
+  8) Racer 2 6.68s
+
+=== Race @ 2025-11-15T13:16:42-06:00 ===
+Total racers: 8
+Winner: Racer 6 (5.21s)
+Total wall time: 0.00s
+Placing:
+  1) Racer 6 5.21s
+  2) Racer 3 6.01s
+  3) Racer 5 6.19s
+  4) Racer 2 6.24s
+  5) Racer 0 6.28s
+  6) Racer 7 6.46s
+  7) Racer 4 6.49s
+  8) Racer 1 6.71s
+
+=== Race @ 2025-11-15T13:17:02-06:00 ===
+Total racers: 4
+Winner: Racer 3 (5.79s)
+Total wall time: 0.00s
+Placing:
+  1) Racer 3 5.79s
+  2) Racer 2 5.89s
+  3) Racer 0 5.95s
+  4) Racer 1 5.96s
+
+=== Race @ 2025-11-15T13:24:27-06:00 ===
+Total racers: 5
+Winner: Racer 2 (5.88s)
+Total wall time: 0.00s
+Placing:
+  1) Racer 2 5.88s
+  2) Racer 4 5.99s
+  3) Racer 1 6.24s
+  4) Racer 3 6.72s
+  5) Racer 0 6.86s
+

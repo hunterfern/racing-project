@@ -699,8 +699,7 @@ placeBtn.addEventListener('click', function(){
 
   // lock bet
   activeBet = { id: id, amer: amer, frac: frac, amount: amount };
-  balance -= amount; saveBalance(); renderBalance(); 
-  balance -= amount; 
+  balance -= amount; saveBalance(); renderBalance();
   saveBalance(); 
   renderBalance();
   checkGameOver(); // <- add this
