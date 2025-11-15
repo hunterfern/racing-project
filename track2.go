@@ -383,15 +383,17 @@ function loadBalance(){
   renderBalance();
 }
 function checkGameOver() {
-  if (balance < 1) {
+  // only reset if player actually has no money *and* no active bet pending
+  if (balance < 1 && !activeBet) {
       alert("Game over! Your money has been reset to $100.");
       balance = 100;
       saveBalance();
       renderBalance();
-      activeBet = null;
+      // activeBet = null;  // not necessary — we only reset when there's no active bet
       slipMsg.textContent = '';
   }
 }
+
 function saveBalance(){
   window.localStorage.setItem('balance_v1', String(balance));
 }
@@ -702,7 +704,7 @@ placeBtn.addEventListener('click', function(){
   balance -= amount; saveBalance(); renderBalance();
   saveBalance(); 
   renderBalance();
-  checkGameOver(); // <- add this
+ 
 
 
   slipMsg.textContent = 'Bet placed: #' + (id+1) + ' for $' + amount +
@@ -714,21 +716,37 @@ placeBtn.addEventListener('click', function(){
 
 function settleBet(win){
   if (!activeBet) return; // no bet
-  if (!win || typeof win.id !== 'number'){ slipMsg.textContent = ''; activeBet = null; return; }
 
-  if (win.id === activeBet.id){
-    var ret = amerPayout(activeBet.amer, activeBet.amount);
-    var profit = ret - activeBet.amount;
+  // store a copy because we'll clear activeBet before calling checkGameOver
+  const bet = activeBet;
+
+  if (!win || typeof win.id !== 'number'){
+    slipMsg.textContent = '';
+    activeBet = null;
+    // no money changes; still call checkGameOver in case balance is 0 and no active bet
+    checkGameOver();
+    return;
+  }
+
+  if (win.id === bet.id){
+    var ret = amerPayout(bet.amer, bet.amount);
+    var profit = ret - bet.amount;
     balance += ret; // give stake + profit back
-    saveBalance(); renderBalance(); checkGameOver();
+    saveBalance();
+    renderBalance();
     slipMsg.textContent = 'WIN! #' + (win.id+1) + ' — returned $' + ret.toFixed(2) + ' (profit $' + profit.toFixed(2) + ').';
   } else {
-    slipMsg.textContent = 'Lost. Winner: #' + (win.id+1) + '. -$' + activeBet.amount.toFixed(2) + '.';
-    checkGameOver(); // <- add this
-    // stake already deducted
+    // stake was already deducted when bet was placed
+    slipMsg.textContent = 'Lost. Winner: #' + (win.id+1) + '. -$' + bet.amount.toFixed(2) + '.';
   }
+
+  // clear the active bet so checkGameOver can act correctly
   activeBet = null;
+
+  // now check whether balance has dropped below 1 and reset if needed
+  checkGameOver();
 }
+
 
 ws.addEventListener('message', (evt) => {
   let msg;
