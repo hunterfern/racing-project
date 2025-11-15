@@ -65,8 +65,11 @@ h1 { margin: 8px 0 12px; }
     z-index: 3;
 }
 
+
 .lane-numbers {
   display: none;
+
+
 }
 .lane-number {
   height: ` + fmt.Sprint(laneHeight) + `px;
@@ -444,6 +447,9 @@ function createRacers() {
 
     laneNumbersEl.innerHTML = '';
 
+
+
+
     dots.length = 0;
     lbBody.innerHTML = '';
     rowEls.length = 0;
@@ -597,7 +603,7 @@ function renderOdds(lines){
     var sign = l.amer >= 0 ? ('+' + l.amer) : ('' + l.amer);
     var frac = (l.fracN && l.fracD) ? (' (' + l.fracN + '/' + l.fracD + ')') : '';
     return '<div class="odds-row">' +
-             '<span>#' + (l.id + 1) + ' Racer ' + (l.id + 1) + '</span>' +
+             '<span>#' + (l.id + 1) + ' Horse ' + (l.id + 1) + '</span>' +
              '<span>' + sign + frac + '</span>' +
            '</div>';
   }).join('');
@@ -612,7 +618,7 @@ function populateHorseSelect() {
   horseSel.innerHTML = linesState.map(function(l){
     var sign = l.amer >= 0 ? ('+' + l.amer) : ('' + l.amer);
     var frac = (l.fracD && l.fracN) ? (' (' + l.fracN + '/' + l.fracD + ')') : '';
-    return '<option value="'+ l.id +'" data-amer="'+ l.amer +'" data-frac="'+ (l.fracD && l.fracN ? (l.fracN + '/' + l.fracD) : '') +'">#'+ (l.id+1) +' Racer '+ (l.id+1) +' — '+ sign + frac +'</option>';
+    return '<option value="'+ l.id +'" data-amer="'+ l.amer +'" data-frac="'+ (l.fracD && l.fracN ? (l.fracN + '/' + l.fracD) : '') +'">#'+ (l.id+1) +' Horse '+ (l.id+1) +' — '+ sign + frac +'</option>';
   }).join('');
 }
 
@@ -627,7 +633,7 @@ function openSlip(){
     var options = [];
     for (var i = 0; i < NUM_RACERS; i++) {
       options.push(
-        '<option value="' + i + '" data-amer="0">#' + (i+1) + ' Racer ' + (i+1) + ' — (loading odds…)</option>'
+        '<option value="' + i + '" data-amer="0">#' + (i+1) + ' Horse ' + (i+1) + ' — (loading odds…)</option>'
       );
     }
     horseSel.innerHTML = options.join('');
@@ -778,6 +784,8 @@ document.getElementById('homeBtn').onclick = () => {
   btnStart.textContent = 'Start Race';
   window.location.href = '/';
 };
+
+
 document.getElementById('resultsBtn').onclick = () => {
   window.location.href = '/results';
 };
@@ -817,8 +825,6 @@ window.addEventListener('load', () => {
 
 window.addEventListener('resize', () => updateTrack([]));
 </script>
-
-
 </body>
 </html>`
 

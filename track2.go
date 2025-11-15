@@ -427,7 +427,7 @@ function createRacers() {
     const img = document.createElement('img');
     img.className = 'racer-dot';
     img.src = '/racer_pictures/racer' + ((i % 12) + 1) + '.png';
-    img.alt = 'Racer ' + (i + 1);
+    img.alt = 'Horse ' + (i + 1);
     img.style.top = (i * laneHeight + laneHeight / 2) + 'px';
     img.style.left = '0px';
     trackEl.appendChild(img);
@@ -463,7 +463,7 @@ function buildLeaderboardRows() {
 
     row.innerHTML =
   '<div class="lb-rank">' + (i + 1) + getSuffix(i + 1) + '</div>' +
-  '<div class="lb-name">Racer ' + (i + 1) + '</div>';
+  '<div class="lb-name">Horse ' + (i + 1) + '</div>';
 
     lbBody.appendChild(row);
     rowEls.push(row);
@@ -527,9 +527,9 @@ function showWinner(w) {
   }
   if (typeof w === 'object') {
     const secs = (Number(w.finishMs)/1000).toFixed(3);
-    winnerEl.textContent = 'Winner: Racer ' + (w.id+1) + ' — ' + secs + 's';
+    winnerEl.textContent = 'Winner: Horse ' + (w.id+1) + ' — ' + secs + 's';
   } else {
-    winnerEl.textContent = 'Winner: Racer ' + (Number(w)+1);
+    winnerEl.textContent = 'Winner: Horse ' + (Number(w)+1);
   }
   btnStart.textContent = 'Race Again';
 }
@@ -584,7 +584,7 @@ function renderOdds(lines){
     var sign = l.amer >= 0 ? ('+' + l.amer) : ('' + l.amer);
     var frac = (l.fracN && l.fracD) ? (' (' + l.fracN + '/' + l.fracD + ')') : '';
     return '<div class="odds-row">' +
-             '<span>#' + (l.id + 1) + ' Racer ' + (l.id + 1) + '</span>' +
+             '<span>#' + (l.id + 1) + ' Horse ' + (l.id + 1) + '</span>' +
              '<span>' + sign + frac + '</span>' +
            '</div>';
   }).join('');
@@ -599,7 +599,7 @@ function populateHorseSelect() {
   horseSel.innerHTML = linesState.map(function(l){
     var sign = l.amer >= 0 ? ('+' + l.amer) : ('' + l.amer);
     var frac = (l.fracD && l.fracN) ? (' (' + l.fracN + '/' + l.fracD + ')') : '';
-    return '<option value="'+ l.id +'" data-amer="'+ l.amer +'" data-frac="'+ (l.fracD && l.fracN ? (l.fracN + '/' + l.fracD) : '') +'">#'+ (l.id+1) +' Racer '+ (l.id+1) +' — '+ sign + frac +'</option>';
+    return '<option value="'+ l.id +'" data-amer="'+ l.amer +'" data-frac="'+ (l.fracD && l.fracN ? (l.fracN + '/' + l.fracD) : '') +'">#'+ (l.id+1) +' Horse '+ (l.id+1) +' — '+ sign + frac +'</option>';
   }).join('');
 
 }
@@ -620,7 +620,7 @@ function openSlip(){
     var options = [];
     for (var i = 0; i < NUM_RACERS; i++) {
         options.push(
-            '<option value="' + i + '" data-amer="0">#' + (i+1) + ' Racer ' + (i+1) + ' — (loading odds…)</option>'
+            '<option value="' + i + '" data-amer="0">#' + (i+1) + ' Horse ' + (i+1) + ' — (loading odds…)</option>'
         );
     }
     horseSel.innerHTML = options.join('');

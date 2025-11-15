@@ -141,12 +141,12 @@ func setupRoutesOnce(hub *Hub, commands chan<- Command, mu *sync.RWMutex, progre
 	<h1 style="font-size: 2em; margin-bottom: 30px;">Select a Race Track</h1>
     <div class="track-container">
         <div class="track">
-            <img src="/track_pictures/ovaltrack.png?v=1" alt="Track 1">
+            <img src="/track_pictures/ovaltrack2.png" alt="Track 1">
             <button onclick="location.href='/track'">Track 1</button>
         </div>
 
         <div class="track">
-            <img src="/track_pictures/track2.png?v=1" alt="Track 2">
+            <img src="/track_pictures/track2.png" alt="Track 2">
             <button onclick="location.href='/track2'">Track 2</button>
         </div>
     </div>
